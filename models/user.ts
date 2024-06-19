@@ -30,7 +30,7 @@ const User = model<IUser>('User', new Schema<IUser>({
 
 
 const UserOtp= model<IUserOTP>('UserOtp', new Schema<IUserOTP>({
-    email:{
+    userId:{
         type:String,
         // required:true
     },

@@ -1,7 +1,7 @@
 
 // mongooseConnection.ts
 
-import mongoose, { ConnectOptions } from 'mongoose';
+import mongoose from 'mongoose';
 import defaultconfig,{IConfig}  from './config/config';
 
 

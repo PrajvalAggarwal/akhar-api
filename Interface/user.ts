@@ -14,7 +14,7 @@ export interface ILoginUser {
 }
 
 export interface IUserOTP{
-    email:string;
+    userId:string;
     otp:number;
     expiresIn:Date;
 }

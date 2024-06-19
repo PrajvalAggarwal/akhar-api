@@ -2,6 +2,7 @@
 import nodemailer from "nodemailer";
 import config from "../config/config";
 import constants from "./constants";
+import jwt from "jsonwebtoken";
 
 const transporter = nodemailer.createTransport({
     host: config.EMAIL.smtp.host,
@@ -224,6 +225,13 @@ function generateOTP(): number {
 }
 
 
+//Generating jwt token
+function generateToken(id: string): string {
+    const token = jwt.sign({ id }, config.JWT.Secret, {
+        expiresIn: constants.JWT.EXPIRES_IN,
+    });
+    return token;
+}
 
 
-export { sendMail, generateOTP }
+export { sendMail, generateOTP,generateToken }

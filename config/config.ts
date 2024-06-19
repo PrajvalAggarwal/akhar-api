@@ -18,6 +18,9 @@ export interface IConfig {
       };
     };
   };
+  JWT:{
+    Secret:string,
+  }
 }
 
 const config: IConfig = {
@@ -35,6 +38,9 @@ const config: IConfig = {
       },
     },
   },
+  JWT:{
+    Secret:process.env.JWT_SECRET || 'test!@123',
+  }
 };
 
 export default config;

@@ -1,7 +1,7 @@
 
 import { Request, Response } from "express";
 import httpStatus from 'http-status';
-import { ILoginUser, IUser } from "../Interface/user";
+import { ILoginUser, IVerfiyOTP } from "../Interface/user";
 import { login } from "../service/user";
 import constants from "../utils/constants";
 
@@ -23,9 +23,15 @@ const loginUser = async (req: Request, res: Response) => {
       }
 }
 
-
 const verifyOTP = async (req: Request, res: Response) => {
-    
+    try{
+        const userOTP = req.body as IVerfiyOTP;
+        await verifyOTP(userOTP);
+        res.status(httpStatus.OK).json({ message: constants.MESSAGE.SUCCESS, data: "OTP Sent Successfully" });
+    }catch (error) {
+        console.error('Error in verifyOTP:', error);
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ error: error });
+    }
 }
 
 export  {
