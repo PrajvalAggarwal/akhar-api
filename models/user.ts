@@ -1,15 +1,17 @@
 import { Schema, model } from 'mongoose';
-import { IUser } from '../Interface/user';
+import { IUser,IUserOTP } from '../Interface/user';
+import constants from '../utils/constants';
 
 
 const User = model<IUser>('User', new Schema<IUser>({
     email:{
         type:String,
-        required:true
+        unique:true
+        // required:true
     },
     name:{
         type:String,
-        required:true
+        // required:true
     },
     pic:{
         type:String,
@@ -22,8 +24,24 @@ const User = model<IUser>('User', new Schema<IUser>({
     },
     dob:{
         type:Date,
-        required:true
+        // required:true
     }
 }))
 
-export default User;
+
+const UserOtp= model<IUserOTP>('UserOtp', new Schema<IUserOTP>({
+    email:{
+        type:String,
+        // required:true
+    },
+    otp:{
+        type:Number,
+        // required:true
+    },
+    expiresIn:{
+        type:Date,
+        default:()=>new Date(Date.now() + constants.OTP.EXPIRES_IN)
+        // required:true
+    }
+}))
+export {User,UserOtp};

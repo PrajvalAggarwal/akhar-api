@@ -1,5 +1,5 @@
 import express from 'express';
-import {loginUser} from '../controllers/user';
+import {loginUser,verifyOTP} from '../controllers/user';
 
 const router = express.Router();
 
@@ -8,6 +8,7 @@ router.get('/', (req, res) => {
 });
 
 router.post('/user',loginUser);
+router.post('/verify-otp',verifyOTP)
 
 
 export default router;  

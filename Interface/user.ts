@@ -12,3 +12,14 @@ export interface IUser {
 export interface ILoginUser {
     email : string;
 }
+
+export interface IUserOTP{
+    email:string;
+    otp:number;
+    expiresIn:Date;
+}
+
+export interface IVerfiyOTP{
+    email:string;
+    otp:number
+}
