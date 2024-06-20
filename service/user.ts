@@ -1,11 +1,13 @@
 
 
 import httpStatus from "http-status";
-import { ILoginUser,  IUser, IVerfiyOTP } from "../Interface/user";
-import { User } from "../models/user";
-import {  sendOTP, generateToken } from "../utils/helper";
+import { ILoginUser, ISocialLogin, IUser, IVerfiyOTP, IUpdateProfile } from "../Interface/user";
+import { User, UserOtp } from "../models/user";
+import { sendOTP, generateToken } from "../utils/helper";
 import constants from "../utils/constants";
 import sessionModel from "../models/sesssion";
+import geoip from 'geoip-lite'
+import { startSession } from "mongoose";
 
 // Login Service
 const login = async (req: ILoginUser) => {
@@ -27,8 +29,12 @@ const login = async (req: ILoginUser) => {
   }
 }
 
-const verifyOTPService = async (req: IVerfiyOTP) => {
+const verifyOTPService = async (req: IVerfiyOTP, ip: string | undefined) => {
+  const session = await startSession()
+  session.startTransaction();
   try {
+
+
     const userOTP = await User.aggregate([
       { $match: { email: req.email } },
       {
@@ -57,17 +63,37 @@ const verifyOTPService = async (req: IVerfiyOTP) => {
 
     const token = generateToken(userOTP[0]._id)
 
+    const geoLoc = geoip.lookup(ip == null ? "" : ip)
+
+
     //Create the session for that user
-    const userSession=new sessionModel({
-      userId:userOTP[0]._id,
-      token:token
+    const userSession = new sessionModel({
+      location: {
+        city: geoLoc?.city,
+        country: geoLoc?.country,
+        region: geoLoc?.region,
+        timezone: geoLoc?.timezone,
+        coordinates: [geoLoc?.ll[0], geoLoc?.ll[1]],
+
+      },
+      userId: userOTP[0]._id,
+      token: token
     })
 
+
+    //Delete user otp record from user otp after verifying
+    await UserOtp.deleteOne({ userId: userOTP[0]._id })
     await userSession.save()
+
+    await session.commitTransaction()
+    session.endSession();
 
     return token
 
   } catch (err) {
+
+    await session.abortTransaction();
+    session.endSession();
     throw err
   }
 }
@@ -77,11 +103,11 @@ const verifyOTPService = async (req: IVerfiyOTP) => {
 const resendOTPService = async (req: ILoginUser) => {
   try {
     const user: IUser | null = await User.findOne({ email: req.email });
-    
+
     if (!user) {
       throw { message: constants.USER.USER_NOT_FOUND, status: httpStatus.NOT_FOUND };
     }
-   
+
     //Send te otp to that user
     await sendOTP(user);
 
@@ -91,6 +117,62 @@ const resendOTPService = async (req: ILoginUser) => {
   }
 }
 
-export { login, verifyOTPService,resendOTPService };
+
+const socialLoginService = async (req: ISocialLogin, ip: string | undefined) => {
+
+  const session = await startSession()
+  session.startTransaction();
+
+  try {
+    //Create the user
+    const user = new User({
+      email: req.email,
+      name: req.name,
+      socialId: req.socialId,
+      socialType: req.socialType
+
+    })
+
+    await user.save()
+
+    console.log(user);
+
+    //Create the user session
+    const token = generateToken(user._id)
+    const geoLoc = geoip.lookup(ip == null ? "" : ip)
+
+    //Create the session for that user
+    const userSession = new sessionModel({
+      location: {
+        city: geoLoc?.city,
+        country: geoLoc?.country,
+        region: geoLoc?.region,
+        timezone: geoLoc?.timezone,
+        coordinates: [geoLoc?.ll[0], geoLoc?.ll[1]],
+
+      },
+      userId: user._id,
+      token: token
+    })
+
+    await userSession.save();
+
+    await session.commitTransaction()
+    session.endSession();
+
+    return token
+
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error
+  }
+}
+
+const updateProfileService = async (req: IUpdateProfile, file: any) => {
+
+}
+
+export { login, verifyOTPService, resendOTPService, socialLoginService, updateProfileService };
 
 

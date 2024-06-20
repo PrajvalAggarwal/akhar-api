@@ -228,7 +228,7 @@ function generateOTP(): number {
 
 
 //Generating jwt token
-function generateToken(id: string): string {
+function generateToken(id: any): string {
   const token = jwt.sign({ id }, config.JWT.Secret, {
     expiresIn: constants.JWT.EXPIRES_IN,
   });
@@ -236,7 +236,7 @@ function generateToken(id: string): string {
 }
 
 //Decoding jwt token
-function decodeToken(token: string): string | JwtPayload {
+function decodeToken(token: any): string | JwtPayload {
   const decoded = jwt.verify(token, config.JWT.Secret);
   return decoded;
 }
@@ -254,8 +254,8 @@ const sendOTP = async (user: IUser) => {
     const expiresIn = new Date(Date.now() + constants.OTP.EXPIRES_IN);
     // const filter = { userId: user._id }
     // const update = { otp: otp, expiresIn: expiresIn }
-    oldOTP.otp=otp;
-    oldOTP.expiresIn=expiresIn
+    oldOTP.otp = otp;
+    oldOTP.expiresIn = expiresIn
     await oldOTP.save()
   } else {
 
