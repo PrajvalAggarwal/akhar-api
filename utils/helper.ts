@@ -2,7 +2,9 @@
 import nodemailer from "nodemailer";
 import config from "../config/config";
 import constants from "./constants";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { IUser } from "../Interface/user";
+import { User, UserOtp } from "../models/user";
 
 const transporter = nodemailer.createTransport({
     host: config.EMAIL.smtp.host,
@@ -233,5 +235,35 @@ function generateToken(id: string): string {
     return token;
 }
 
+//Decoding jwt token
+function decodeToken(token: string): string | JwtPayload {
+   const decoded = jwt.verify(token, config.JWT.Secret);
+   return decoded;
+}
 
-export { sendMail, generateOTP,generateToken }
+
+//send the otp 
+const sendOTP = async (user:IUser) => {
+
+  const oldOTP = await UserOtp.findOne({ _id: user._id });
+  const otp = generateOTP();
+  if (oldOTP){
+    const filter={userId:user._id}
+    const update= {otp:otp,expiresIn:()=>new Date(Date.now() + constants.OTP.EXPIRES_IN)}
+    await UserOtp.findOneAndUpdate(filter,update)
+
+  }else{
+   
+    const userOTP = new UserOtp({
+      userId: user._id,
+      otp: otp,
+    });
+    await userOTP.save();
+  }
+  await sendMail(user?.email, String(otp), user?.name);
+
+ 
+}
+
+
+export { sendMail, generateOTP,generateToken,decodeToken,sendOTP }

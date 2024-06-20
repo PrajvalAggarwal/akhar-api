@@ -1,4 +1,7 @@
-export interface IUser {
+
+import mongoose, { Document } from "mongoose";
+
+export interface IUser extends Document {
     email : string;
     password : string;
     name : string;
@@ -6,17 +9,22 @@ export interface IUser {
     socialId:string;
     socialType:string;
     dob:Date;
+    createdAt: Date;
+    updatedAt: Date;
 
 }
 
 export interface ILoginUser {
     email : string;
+    
 }
 
-export interface IUserOTP{
-    userId:string;
+export interface IUserOTP extends Document{
+    userId:mongoose.Types.ObjectId;
     otp:number;
     expiresIn:Date;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface IVerfiyOTP{
