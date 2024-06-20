@@ -64,7 +64,7 @@ const verifyOTPService = async (req: IVerfiyOTP) => {
     })
 
     await userSession.save()
-    
+
     return token
 
   } catch (err) {
@@ -86,7 +86,7 @@ const resendOTPService = async (req: ILoginUser) => {
     await sendOTP(user);
 
   } catch (error) {
-    throw { message: constants.MESSAGE.INTERNAL_SERVER_ERROR, status: httpStatus.INTERNAL_SERVER_ERROR }
+    throw error
     // console.error('Error in logging in user:', error);
   }
 }

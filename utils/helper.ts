@@ -7,22 +7,22 @@ import { IUser } from "../Interface/user";
 import { User, UserOtp } from "../models/user";
 
 const transporter = nodemailer.createTransport({
-    host: config.EMAIL.smtp.host,
-    port: config.EMAIL.smtp.port,
-    secure: false, // Use `true` for port 465, `false` for all other ports
-    auth: {
-        user: config.EMAIL.smtp.auth.user,
-        pass: config.EMAIL.smtp.auth.pass,
-    },
+  host: config.EMAIL.smtp.host,
+  port: config.EMAIL.smtp.port,
+  secure: false, // Use `true` for port 465, `false` for all other ports
+  auth: {
+    user: config.EMAIL.smtp.auth.user,
+    pass: config.EMAIL.smtp.auth.pass,
+  },
 });
 
 //Seding mail
 const sendMail = async (email: string, otp: string, name: string) => {
-    const info = await transporter.sendMail({
-        from: '<contact@llamanodes.net>', // sender address
-        to: `${email}`, // list of receivers
-        subject: `Verification mail`, // Subject line
-        html: `<!DOCTYPE html>
+  const info = await transporter.sendMail({
+    from: '<contact@llamanodes.net>', // sender address
+    to: `${email}`, // list of receivers
+    subject: `Verification mail`, // Subject line
+    html: `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -215,45 +215,50 @@ const sendMail = async (email: string, otp: string, name: string) => {
   </body>
 </html>
 `, // html body
-    });
+  });
 
 }
 
 //Generating OTP based on digits
 function generateOTP(): number {
-    const min = constants.OTP.MIN;
-    const max = constants.OTP.MAX;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  const min = constants.OTP.MIN;
+  const max = constants.OTP.MAX;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 
 //Generating jwt token
 function generateToken(id: string): string {
-    const token = jwt.sign({ id }, config.JWT.Secret, {
-        expiresIn: constants.JWT.EXPIRES_IN,
-    });
-    return token;
+  const token = jwt.sign({ id }, config.JWT.Secret, {
+    expiresIn: constants.JWT.EXPIRES_IN,
+  });
+  return token;
 }
 
 //Decoding jwt token
 function decodeToken(token: string): string | JwtPayload {
-   const decoded = jwt.verify(token, config.JWT.Secret);
-   return decoded;
+  const decoded = jwt.verify(token, config.JWT.Secret);
+  return decoded;
 }
 
 
 //send the otp 
-const sendOTP = async (user:IUser) => {
+const sendOTP = async (user: IUser) => {
+  // console.log(user)
 
-  const oldOTP = await UserOtp.findOne({ _id: user._id });
+  console.log()
+  const oldOTP = await UserOtp.findOne({ userId: user._id });
+  // console.log(oldOTP)
   const otp = generateOTP();
-  if (oldOTP){
-    const filter={userId:user._id}
-    const update= {otp:otp,expiresIn:()=>new Date(Date.now() + constants.OTP.EXPIRES_IN)}
-    await UserOtp.findOneAndUpdate(filter,update)
+  if (oldOTP) {
+    const expiresIn = new Date(Date.now() + constants.OTP.EXPIRES_IN);
+    // const filter = { userId: user._id }
+    // const update = { otp: otp, expiresIn: expiresIn }
+    oldOTP.otp=otp;
+    oldOTP.expiresIn=expiresIn
+    await oldOTP.save()
+  } else {
 
-  }else{
-   
     const userOTP = new UserOtp({
       userId: user._id,
       otp: otp,
@@ -262,8 +267,8 @@ const sendOTP = async (user:IUser) => {
   }
   await sendMail(user?.email, String(otp), user?.name);
 
- 
+
 }
 
 
-export { sendMail, generateOTP,generateToken,decodeToken,sendOTP }
+export { sendMail, generateOTP, generateToken, decodeToken, sendOTP }
